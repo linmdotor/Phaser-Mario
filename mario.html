@@ -27,6 +27,8 @@ function preload() {
 
 	game.load.spritesheet('mario', 'assets/images/character/mario_small.gif', 32, 32);
 
+	game.load.image('moneda', 'assets/images/tiles/basement/6.gif');
+
 }
 
 
@@ -46,10 +48,10 @@ function create() {
 	suelo.body.immovable = true;
 
 	// Creamos un par de plataformas para saltar en ellas
-	var plataforma1 = plataformas.create(150, game.world.height - 150, 'plataforma');
+	var plataforma1 = plataformas.create(150, game.world.height - 125, 'plataforma');
 	plataforma1.body.immovable = true;
 
-	var plataforma2 = plataformas.create(300, game.world.height - 250, 'plataforma');
+	var plataforma2 = plataformas.create(300, game.world.height - 225, 'plataforma');
 	plataforma2.body.immovable = true;
 
 	//creamos al jugador como si fuese un sprite
@@ -66,16 +68,38 @@ function create() {
 	//añade la entrada de teclado
 	cursors = game.input.keyboard.createCursorKeys();
 
+	//añade el grupo de colision monedas
+	monedas = game.add.group();
+	monedas.enableBody = true;
+
+	for (var i = 0; i < 12; i++)
+	{
+		var coin = monedas.create(i * 70, 0, 'moneda');
+		coin.body.gravity.y = 350;
+		coin.body.gravity.x = (Math.random()-0.5)*100;
+		coin.body.collideWorldBounds = true;
+		coin.body.bounce.y = 0.5;
+		coin.body.bounce.x = 1; //Rebote a los lados
+	}
+
 }
 
 
 function update() {
 
+	//
+	//COLISIONES
+	//
 	//indicamos que Mario debe colisionar con el grupo "plataformas"
 	game.physics.arcade.collide(player, plataformas);
 
-	
+	//colision de las monedas
+	game.physics.arcade.collide(monedas,plataformas);
+	game.physics.arcade.overlap(player, monedas, getmoneda, null, this);
+
+	//
 	//CONTROL DEL PERSONAJE
+	//
 	if (cursors.up.isDown)
 	{
 		if(player.body.touching.down) //habrá que cambiarlo por player.body.blocked.down si se emplea mapa de tiles
@@ -107,7 +131,7 @@ function update() {
 			player.frame = 14;		
 	}
 
-	//sobreescribe cualquier tecla si está saltando
+	//sobreescribe cualquier animación si está saltando
 	if(!player.body.touching.down)
 	{
 		player.animations.stop();
@@ -117,6 +141,13 @@ function update() {
 			player.frame = 18;
 	}
 
+}
+
+//
+//FUNCION DE COLISION DEL PERSONAJE CON LAS MONEDAS
+//
+function getmoneda(player, moneda) {
+	moneda.kill();
 }
 
 

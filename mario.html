@@ -29,6 +29,7 @@ function preload() {
 
 	game.load.image('moneda', 'assets/images/tiles/basement/6.gif');
 
+	game.load.bitmapFont('snes', 'assets/font/mario20_0.png', 'assets/font/mario20.fnt');
 }
 
 
@@ -82,10 +83,29 @@ function create() {
 		coin.body.bounce.x = 1; //Rebote a los lados
 	}
 
+	// TEXTO a la izquierda "MARIO" con el número de monedas (score) debajo
+	game.add.bitmapText(64, 16,'snes', 'MARIO', 20);
+	score = 0;
+	scoreText = game.add.bitmapText(90, 50, 'snes', '0', 20);
+	game.add.sprite(44, 42, 'moneda');
+
+	// TEXTO a la derecha el tiempo "TIME", 400 segundos que decrecerán
+	game.add.bitmapText(game.world.width - 154, 16, 'snes', 'TIME', 20);
+	timeText = game.add.bitmapText(game.world.width - 140, 50, 'snes', '0', 20);
+
+	//TIEMPO
+	initTime = game.time.now;
+
 }
 
 
 function update() {
+
+	//
+	//ACTUALIZACIÓN DE TIEMPO
+	//
+	dif = (game.time.now - initTime)/1000;
+	timeText.setText(''+(400-Math.floor(dif)));
 
 	//
 	//COLISIONES
@@ -100,9 +120,9 @@ function update() {
 	//
 	//CONTROL DEL PERSONAJE
 	//
-	if (cursors.up.isDown)
+	if (cursors.up.isDown && player.body.touching.down)
 	{
-		if(player.body.touching.down) //habrá que cambiarlo por player.body.blocked.down si se emplea mapa de tiles
+		//habrá que cambiarlo por player.body.blocked.down si se emplea mapa de tiles
 		player.body.velocity.y = -500;		
 	}
 
@@ -141,6 +161,7 @@ function update() {
 			player.frame = 18;
 	}
 
+
 }
 
 //
@@ -148,6 +169,8 @@ function update() {
 //
 function getmoneda(player, moneda) {
 	moneda.kill();
+	score += 100;
+	scoreText.setText(''+score);
 }
 
 

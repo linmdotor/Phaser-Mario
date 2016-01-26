@@ -168,9 +168,31 @@ function update() {
 //FUNCION DE COLISION DEL PERSONAJE CON LAS MONEDAS
 //
 function getmoneda(player, moneda) {
+	creaReward(moneda.x, moneda.y);
+
 	moneda.kill();
 	score += 100;
 	scoreText.setText(''+score);
+
+}
+
+//
+//FUNCION DE ANIMACION DEL TEXTO DE SCORE DE LA MONEDA
+//
+function creaReward(x, y) {
+	reward = game.add.bitmapText(x,y,'snes','100', 20);
+	timer = game.time.create(true);
+	timer.repeat(10,50,
+		function (reward) {
+			reward.y-=2;
+		},null,reward);
+
+	timer.add(600,
+		function (reward) {
+			reward.destroy(true);
+		},null,reward);
+
+	timer.start();
 }
 
 

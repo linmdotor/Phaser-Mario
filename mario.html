@@ -18,21 +18,25 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create
 
 
 function preload() {
+
 	game.load.image('fondo', 'assets/images/backgrounds/bg.gif');
 
 	game.load.image('suelo', 'assets/images/backgrounds/suelo.gif');
 	game.load.image('plataforma', 'assets/images/backgrounds/plataforma.gif');
 
+	game.load.spritesheet('mario', 'assets/images/character/mario_small.gif', 32, 32);
+	
 }
 
 
 function create() {
+
 	game.add.sprite(0, 0, 'fondo');
 
 	//creamos un grupo de colisión para las plataformas
 	//y para tener física, tenemos que activar el atributo Body
 	game.physics.startSystem(Phaser.Physics.ARCADE);
-	var plataformas = game.add.group();
+	plataformas = game.add.group();
 	plataformas.enableBody = true;
 
 
@@ -41,9 +45,23 @@ function create() {
 	suelo.body.immovable = true;
 
 	// Creamos un par de plataformas para saltar en ellas
-	var plataforma1 = plataformas.create(120, game.world.height - 150, 'plataforma');
+	var plataforma1 = plataformas.create(150, game.world.height - 150, 'plataforma');
+	plataforma1.body.immovable = true;
 
 	var plataforma2 = plataformas.create(300, game.world.height - 250, 'plataforma');
+	plataforma2.body.immovable = true;
+
+	//creamos al jugador como si fuese un sprite
+	player = game.add.sprite(50, game.world.height - 150, 'mario');
+	player.animations.add('right', [0, 1, 2, 3], 10, true);
+	player.animations.add('left', [14, 15, 16, 17], 10, true);
+
+	//indicamos que tiene física
+	game.physics.arcade.enable(player);
+	player.body.bounce.y = 0.2;
+	player.body.gravity.y = 1000;
+	player.body.collideWorldBounds = true;
+
 
 
 }
@@ -51,6 +69,8 @@ function create() {
 
 function update() {
 
+	//indicamos que Mario debe colisionar con el grupo "plataformas"
+	game.physics.arcade.collide(player, plataformas);
 
 }
 

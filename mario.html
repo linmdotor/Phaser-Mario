@@ -19,11 +19,33 @@ var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create
 
 function preload() {
 	game.load.image('fondo', 'assets/images/backgrounds/bg.gif');
+
+	game.load.image('suelo', 'assets/images/backgrounds/suelo.gif');
+	game.load.image('plataforma', 'assets/images/backgrounds/plataforma.gif');
+
 }
 
 
 function create() {
 	game.add.sprite(0, 0, 'fondo');
+
+	//creamos un grupo de colisión para las plataformas
+	//y para tener física, tenemos que activar el atributo Body
+	game.physics.startSystem(Phaser.Physics.ARCADE);
+	var plataformas = game.add.group();
+	plataformas.enableBody = true;
+
+
+	var suelo = plataformas.create(0, game.world.height - 32, 'suelo');
+	// Hacemos que no se pueda atravesar el suelo
+	suelo.body.immovable = true;
+
+	// Creamos un par de plataformas para saltar en ellas
+	var plataforma1 = plataformas.create(120, game.world.height - 150, 'plataforma');
+
+	var plataforma2 = plataformas.create(300, game.world.height - 250, 'plataforma');
+
+
 }
 
 

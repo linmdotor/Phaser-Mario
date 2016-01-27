@@ -5,6 +5,9 @@
 	<title>Phaser Mario</title>
 	<script type="text/javascript" src="js/phaser.js"></script>
 	<script type="text/javascript" src="js/goomba.js"></script>
+	<script type="text/javascript" src="js/mario.js"></script>
+	<script type="text/javascript" src="js/coins.js"></script>
+	<script type="text/javascript" src="js/text.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -15,219 +18,85 @@
 
 <script type="text/javascript">
 
-var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update});
+	var game = new Phaser.Game(800, 600, Phaser.AUTO, '', { preload: preload, create: create, update: update});
 
-var direccion;
+	function preload() {
 
-var snd_moneda;
-var snd_main;
-
-var dead = false;
-
-function preload() {
-
-	game.load.image('fondo', 'assets/images/backgrounds/bg.gif');
-
-	game.load.image('suelo', 'assets/images/backgrounds/suelo.gif');
-	game.load.image('plataforma', 'assets/images/backgrounds/plataforma.gif');
-
-	game.load.spritesheet('mario', 'assets/images/character/mario_small.gif', 32, 32);
-
-	game.load.image('moneda', 'assets/images/tiles/basement/6.gif');
-
-	game.load.bitmapFont('snes', 'assets/font/mario20_0.png', 'assets/font/mario20.fnt');
-
-	game.load.audio('snd_moneda', ['assets/audio/coin.mp3', 'assets/audio/coin.ogg']);
-	game.load.audio('snd_game', ['assets/music/music_main.mp3', 'assets/music/music_main.ogg']);
-
-	game.load.spritesheet('goomba', 'assets/images/enemies/goomba.gif', 32, 32);
-
-	game.load.audio('snd_die', ['assets/music/music_die.mp3', 'assets/music/music_die.ogg']);
-}
+		game.load.image('fondo', 'assets/images/backgrounds/bg.gif');
+		game.load.image('suelo', 'assets/images/backgrounds/suelo.gif');
+		game.load.image('plataforma', 'assets/images/backgrounds/plataforma.gif');
 
 
-function create() {
-
-	game.add.sprite(0, 0, 'fondo');
-
-	//creamos un grupo de colisión para las plataformas
-	//y para tener física, tenemos que activar el atributo Body
-	game.physics.startSystem(Phaser.Physics.ARCADE);
-	plataformas = game.add.group();
-	plataformas.enableBody = true;
+		game.load.audio('snd_game', ['assets/music/music_main.mp3', 'assets/music/music_main.ogg']);
+		game.load.audio('snd_die', ['assets/music/music_die.mp3', 'assets/music/music_die.ogg']);
 
 
-	var suelo = plataformas.create(0, game.world.height - 32, 'suelo');
-	// Hacemos que no se pueda atravesar el suelo
-	suelo.body.immovable = true;
+		this.mario = new Mario();
+		this.hud = new Text(game);
+		this.goomba = new Goomba();
+		this.coins = new Coins(this.hud);
 
-	// Creamos un par de plataformas para saltar en ellas
-	var plataforma1 = plataformas.create(150, game.world.height - 125, 'plataforma');
-	plataforma1.body.immovable = true;
-
-	var plataforma2 = plataformas.create(300, game.world.height - 225, 'plataforma');
-	plataforma2.body.immovable = true;
-
-	//creamos al jugador como si fuese un sprite
-	player = game.add.sprite(50, game.world.height - 150, 'mario');
-	player.animations.add('right', [0, 1, 2, 3], 10, true);
-	player.animations.add('left', [14, 15, 16, 17], 10, true);
-
-	//indicamos que tiene física
-	game.physics.arcade.enable(player);
-	player.body.bounce.y = 0.1;
-	player.body.gravity.y = 1000;
-	player.body.collideWorldBounds = true;
-
-	//añade la entrada de teclado
-	cursors = game.input.keyboard.createCursorKeys();
-
-	//añade el grupo de colision monedas
-	monedas = game.add.group();
-	monedas.enableBody = true;
-
-	for (var i = 0; i < 12; i++)
-	{
-		var coin = monedas.create(i * 70, 0, 'moneda');
-		coin.body.gravity.y = 350;
-		coin.body.gravity.x = (Math.random()-0.5)*100;
-		coin.body.collideWorldBounds = true;
-		coin.body.bounce.y = 0.5;
-		coin.body.bounce.x = 1; //Rebote a los lados
 	}
 
-	// TEXTO a la izquierda "MARIO" con el número de monedas (score) debajo
-	game.add.bitmapText(64, 16,'snes', 'MARIO', 20);
-	score = 0;
-	scoreText = game.add.bitmapText(90, 50, 'snes', '0', 20);
-	game.add.sprite(44, 42, 'moneda');
 
-	// TEXTO a la derecha el tiempo "TIME", 400 segundos que decrecerán
-	game.add.bitmapText(game.world.width - 154, 16, 'snes', 'TIME', 20);
-	timeText = game.add.bitmapText(game.world.width - 140, 50, 'snes', '0', 20);
+	function create() {
 
-	//TIEMPO
-	initTime = game.time.now;
+		//Creamos el sprite de fondo
+		game.add.sprite(0, 0, 'fondo');
 
-	//MUSICA
-	snd_moneda = game.add.audio('snd_moneda');
-	snd_main = game.add.audio('snd_game',1,true);
-	snd_die = game.add.audio('snd_die');
+		//Inicializar la física
+		game.physics.startSystem(Phaser.Physics.ARCADE);
 
-	snd_main.play();
+		//PLATAFORMAS
 
-	//GOOMBA
-	goomba = new Goomba();
+		//Creamos el grupo de objetos que conforman la plataforma
+		this.plataformas = game.add.group();
 
-}
+		//Los elementos del grupo plataformas tienen física
+		this.plataformas.enableBody = true;
 
+		// Aquí creamos el suelo.
+		var suelo = this.plataformas.create(0, game.world.height - 32, 'suelo');
+		
+		// Hacemos que no se pueda atravesar el suelo
+		suelo.body.immovable = true;
 
-function update() {
+		// Creamos un par de plataformas para saltar en ellas
+		var plataforma = this.plataformas.create(150, game.world.height - 125, 'plataforma');
+		plataforma.body.immovable = true;
 
+		plataforma = this.plataformas.create(300, game.world.height - 225, 'plataforma');
+		plataforma.body.immovable = true;
 
-	//COLISIONES de monedas con plataformas
-	game.physics.arcade.collide(monedas,plataformas);
+		//SONIDOS
 
+		// Cargamos los sonidos del juego
+		snd_main = game.add.audio('snd_game',1,true);
+		snd_die = game.add.audio('snd_die');
+		snd_main.play();
 
-if(!dead)
-{
+		//ENTIDADES
 
-	//
-	//ACTUALIZACIÓN DE TIEMPO
-	//
-	dif = (game.time.now - initTime)/1000;
-	timeText.setText(''+(400-Math.floor(dif)));
+		// Creamos a mario
+		this.mario.create();
+		// Creamos las monedas
+		this.coins.create();
+		// Creamos el hud
+		this.hud.create();
+		// Creamos a goomba
+		this.goomba.create();
 
-	//
-	//COLISIONES
-	//
-	//indicamos que Mario debe colisionar con el grupo "plataformas"
-	game.physics.arcade.collide(player, plataformas);
-
-	//colision de las monedas	
-	game.physics.arcade.overlap(player, monedas, getmoneda, null, this);
-
-	//
-	//CONTROL DEL PERSONAJE
-	//
-	if (cursors.up.isDown && player.body.touching.down)
-	{
-		//habrá que cambiarlo por player.body.blocked.down si se emplea mapa de tiles
-		player.body.velocity.y = -500;		
 	}
 
-	if (cursors.left.isDown)
-	{
-		direccion = 'left';
-		// Mueve a la izquierda
-		player.body.velocity.x = -150;
-		player.animations.play('left');
+
+	function update() {
+
+		this.coins.update(this.plataformas, this.mario);
+		this.hud.update();
+		this.goomba.update(this.plataformas, this.mario);
+		this.mario.update(this.plataformas);
+
 	}
-	else if (cursors.right.isDown)
-	{
-		direccion = 'right';
-		// Mueve a la derecha
-		player.body.velocity.x = +150;
-		player.animations.play('right');
-	}
-	else
-	{
-		player.body.velocity.x = 0;
-		//Para
-		player.animations.stop();
-		if(direccion == 'right')
-			player.frame = 0;
-		else
-			player.frame = 14;		
-	}
-
-	//sobreescribe cualquier animación si está saltando
-	if(!player.body.touching.down)
-	{
-		player.animations.stop();
-		if(direccion == 'right')
-			player.frame = 4;
-		else
-			player.frame = 18;
-	}
-}
-	//ACTUALIZACION DEL GOOMBA
-	goomba.update();
-
-}
-
-//
-//FUNCION DE COLISION DEL PERSONAJE CON LAS MONEDAS
-//
-function getmoneda(player, moneda) {
-	creaReward(moneda.x, moneda.y);
-	snd_moneda.play();
-
-	moneda.kill();
-	score += 100;
-	scoreText.setText(''+score);
-
-}
-
-//
-//FUNCION DE ANIMACION DEL TEXTO DE SCORE DE LA MONEDA
-//
-function creaReward(x, y) {
-	reward = game.add.bitmapText(x,y,'snes','100', 20);
-	timer = game.time.create(true);
-	timer.repeat(10,50,
-		function (reward) {
-			reward.y-=2;
-		},null,reward);
-
-	timer.add(600,
-		function (reward) {
-			reward.destroy(true);
-		},null,reward);
-
-	timer.start();
-}
-
 
 </script>
 

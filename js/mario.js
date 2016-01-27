@@ -46,6 +46,13 @@ Mario.prototype.kill = function(mario, goomba) {
 	snd_main.stop();
 	snd_die.play();
 
+	snd_die.onStop.add(this.backtomenu, this);
+}
+
+Mario.prototype.backtomenu = function() {
+
+	game.state.start('menu');
+
 }
 
 Mario.prototype.alive = function() {
@@ -69,7 +76,7 @@ Mario.prototype.update = function(plataformas) {
 
 	// Gestión teclado
 	if (this.cursors.up.isDown && this.player.body.touching.down)
-	{
+	{ //con tiled el touching habrá que cambiarlo por el blocked.down/top
 		this.player.body.velocity.y = -500;		
 	}
 

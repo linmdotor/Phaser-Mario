@@ -76,6 +76,8 @@ SuperMario.Game.prototype.create = function() {
 	this.hud.create();
 	// Creamos a goomba
 	this.goomba.create();
+	this.goomba2.create();
+	this.goomba3.create();
 
 }
 
@@ -85,6 +87,8 @@ SuperMario.Game.prototype.update = function() {
 	this.coins.update(this.plataformas, this.mario);
 	this.hud.update();
 	this.goomba.update(this.plataformas, this.mario);
+	this.goomba2.update(this.plataformas, this.mario);
+	this.goomba3.update(this.plataformas, this.mario);
 	this.mario.update(this.plataformas);
 
 }

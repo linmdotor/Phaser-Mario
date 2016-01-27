@@ -4,6 +4,7 @@
 	<meta charset="UTF-8" />
 	<title>Phaser Mario</title>
 	<script type="text/javascript" src="js/phaser.js"></script>
+	<script type="text/javascript" src="js/goomba.js"></script>
     <style type="text/css">
         body {
             margin: 0;
@@ -21,6 +22,8 @@ var direccion;
 var snd_moneda;
 var snd_main;
 
+var dead = false;
+
 function preload() {
 
 	game.load.image('fondo', 'assets/images/backgrounds/bg.gif');
@@ -36,6 +39,10 @@ function preload() {
 
 	game.load.audio('snd_moneda', ['assets/audio/coin.mp3', 'assets/audio/coin.ogg']);
 	game.load.audio('snd_game', ['assets/music/music_main.mp3', 'assets/music/music_main.ogg']);
+
+	game.load.spritesheet('goomba', 'assets/images/enemies/goomba.gif', 32, 32);
+
+	game.load.audio('snd_die', ['assets/music/music_die.mp3', 'assets/music/music_die.ogg']);
 }
 
 
@@ -105,13 +112,25 @@ function create() {
 	//MUSICA
 	snd_moneda = game.add.audio('snd_moneda');
 	snd_main = game.add.audio('snd_game',1,true);
+	snd_die = game.add.audio('snd_die');
 
 	snd_main.play();
+
+	//GOOMBA
+	goomba = new Goomba();
 
 }
 
 
 function update() {
+
+
+	//COLISIONES de monedas con plataformas
+	game.physics.arcade.collide(monedas,plataformas);
+
+
+if(!dead)
+{
 
 	//
 	//ACTUALIZACIÓN DE TIEMPO
@@ -125,8 +144,7 @@ function update() {
 	//indicamos que Mario debe colisionar con el grupo "plataformas"
 	game.physics.arcade.collide(player, plataformas);
 
-	//colision de las monedas
-	game.physics.arcade.collide(monedas,plataformas);
+	//colision de las monedas	
 	game.physics.arcade.overlap(player, monedas, getmoneda, null, this);
 
 	//
@@ -172,7 +190,9 @@ function update() {
 		else
 			player.frame = 18;
 	}
-
+}
+	//ACTUALIZACION DEL GOOMBA
+	goomba.update();
 
 }
 
